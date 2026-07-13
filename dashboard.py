@@ -1,3 +1,4 @@
+import io
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -38,7 +39,7 @@ if not uploaded:
 @st.cache_data(show_spinner="데이터 로딩 중...")
 def load_data(file_bytes: bytes) -> pd.DataFrame:
     df = pd.read_excel(
-        file_bytes,
+        io.BytesIO(file_bytes),
         sheet_name="입고현황",
         usecols="A:N",
         header=0,
