@@ -47,18 +47,22 @@ def load_data(file_bytes: bytes) -> pd.DataFrame:
     df = pd.read_excel(
         io.BytesIO(file_bytes),
         sheet_name="입고현황",
-        usecols="A:N",
+        usecols="A:O",
         header=0,
         engine="openpyxl",
     )
     df.columns = [
         "입고일자", "입고번호", "거래처", "거래구분", "환종", "담당자",
         "No", "품번", "품명", "규격", "단위", "입고수량", "외화단가", "외화금액",
+        "해당월",
     ]
-    df = df.dropna(subset=["입고일자", "품명"])
-    df["입고일자"] = pd.to_datetime(df["입고일자"], errors="coerce")
-    df = df.dropna(subset=["입고일자"])
-    df["연월"] = df["입고일자"].dt.to_period("M").astype(str)
+    df = df.dropna(subset=["해당월", "품명"])
+    # 해당월 형식 통일: 2026-04 / 2026/04 → 2026/04
+    df["연월"] = (
+        df["해당월"].astype(str).str.strip()
+        .str[:7]
+        .str.replace("-", "/", regex=False)
+    )
     df["단위_정규"] = df["단위"].apply(
         lambda u: "G" if pd.notna(u) and str(u).strip().upper() == "G"
         else ("EA" if pd.notna(u) and str(u).strip().upper() == "EA" else "기타")
@@ -174,7 +178,7 @@ with tab1:
 
     # 연도 소계 테이블
     df1y = df.copy()
-    df1y["연도"] = df1y["입고일자"].dt.year
+    df1y["연도"] = df1y["연월"].str[:4].astype(int)
     tbl1 = (
         df1y[df1y["품목군"].isin(top_g)]
         .groupby(["품목군", "연도"])[val_col]
