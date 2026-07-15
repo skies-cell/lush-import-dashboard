@@ -316,7 +316,7 @@ with tab1:
             ),
             margin=dict(l=60, r=180, t=50, b=70),
         )
-        st.plotly_chart(fig1, use_container_width=True)
+        st.plotly_chart(fig1, width="stretch")
 
     # 연도 소계 테이블
     st.markdown('<div class="section-box">', unsafe_allow_html=True)
@@ -337,7 +337,7 @@ with tab1:
     styled1 = safe_gradient(styled1, num_c1 + ["합계"])
     styled1 = tbl_style(styled1).set_properties(**{"text-align": "right"})
     styled1 = styled1.set_properties(subset=["품목군"], **{"text-align": "left"})
-    st.dataframe(styled1, use_container_width=True, height=500)
+    st.dataframe(styled1, width="stretch", height=500)
     st.markdown('</div>', unsafe_allow_html=True)
 
 
@@ -392,7 +392,7 @@ with tab2:
                 margin=dict(l=150, r=30, t=50, b=50),
                 title_font=dict(size=14, color="#111827"),
             )
-            st.plotly_chart(fig2a, use_container_width=True)
+            st.plotly_chart(fig2a, width="stretch")
 
         with c_trend:
             top_items = rank_df["품명"].head(10).tolist()
@@ -414,7 +414,7 @@ with tab2:
                     legend=dict(orientation="v", x=1.01, y=1, font=dict(size=10)),
                     margin=dict(l=60, r=160, t=50, b=70),
                 )
-                st.plotly_chart(fig2b, use_container_width=True)
+                st.plotly_chart(fig2b, width="stretch")
 
         st.markdown('<div class="section-box">', unsafe_allow_html=True)
         st.markdown('<div class="section-title">품목별 합계</div>', unsafe_allow_html=True)
@@ -429,7 +429,7 @@ with tab2:
         tbl2.index += 1
         s2 = tbl2.style.format({"총수량": "{:,.0f}", "평균단가": "{:,.1f}", "입고횟수": "{:,.0f}"})
         s2 = safe_gradient(s2, ["총수량"])
-        st.dataframe(tbl_style(s2), use_container_width=True, height=380)
+        st.dataframe(tbl_style(s2), width="stretch", height=380)
         st.markdown('</div>', unsafe_allow_html=True)
 
 
@@ -454,7 +454,7 @@ with tab3:
     else:
         pm = (
             df3.groupby(["품명", "국가", "환종", "연월"])["외화단가"]
-            .mean().reset_index().sort_values(["품명", "연월"])
+            .mean().reset_index().sort_values(["품명", "환종", "연월"])
         )
         pm["이전단가"] = pm.groupby(["품명", "환종"])["외화단가"].shift(1)
         pm["변동률"]   = ((pm["외화단가"] - pm["이전단가"]) / pm["이전단가"] * 100).round(1)
@@ -494,7 +494,7 @@ with tab3:
                 s3 = s3.format({
                     "이전단가": "{:,.2f}", "현재단가": "{:,.2f}", "변동률(%)": "{:+.1f}%"
                 })
-                st.dataframe(tbl_style(s3), use_container_width=True, height=400)
+                st.dataframe(tbl_style(s3), width="stretch", height=400)
 
         if not anom.empty:
             top5 = anom["품명"].value_counts().head(5).index.tolist()
@@ -523,7 +523,7 @@ with tab3:
                             legend=dict(orientation="v", x=1.01, y=1, font=dict(size=10)),
                             margin=dict(l=60, r=140, t=50, b=70),
                         )
-                        st.plotly_chart(fig3, use_container_width=True)
+                        st.plotly_chart(fig3, width="stretch")
 
 
 # ════════════════════════════════════════════════
@@ -565,7 +565,7 @@ with tab4:
                     showlegend=False,
                     hovermode="x",
                 )
-                st.plotly_chart(fig4, use_container_width=True)
+                st.plotly_chart(fig4, width="stretch")
 
     # YoY 바 차트 (금액 기준)
     if len(all_months) >= 13:
@@ -578,7 +578,7 @@ with tab4:
             cdf["YoY"] = (cdf["금액"].pct_change(12) * 100).round(1)
             yoy_list.append(cdf)
         if yoy_list:
-            yoy_all = pd.concat(yoy_list).dropna(subset=["YoY"])
+            yoy_all = pd.concat(yoy_list, ignore_index=True).dropna(subset=["YoY"])
             if not yoy_all.empty:
                 fig4c = px.bar(
                     yoy_all, x="연월", y="YoY", color="국가",
@@ -588,7 +588,7 @@ with tab4:
                 fig4c.add_hline(y=0, line_dash="dash", line_color="#9ca3af", line_width=1.5)
                 apply_base(fig4c, height=300)
                 fig4c.update_layout(title="입고금액 전년 동월 대비 (%)")
-                st.plotly_chart(fig4c, use_container_width=True)
+                st.plotly_chart(fig4c, width="stretch")
 
     # 국가별 월별 상세 테이블
     st.markdown('<div class="section-box">', unsafe_allow_html=True)
@@ -603,7 +603,7 @@ with tab4:
         s4 = tbl4.style.format("{:,.0f}")
         s4 = safe_gradient(s4, ["합계"])
         st.dataframe(tbl_style(s4).set_properties(**{"text-align": "right"}),
-                     use_container_width=True, height=380)
+                     width="stretch", height=380)
     except Exception as e:
         st.warning(f"테이블 렌더링 오류: {e}")
     st.markdown('</div>', unsafe_allow_html=True)
@@ -642,7 +642,7 @@ with tab5:
                     unsafe_allow_html=True)
         st.metric("신규 품목 수", f"{len(new_items)}개")
         if not new_items.empty:
-            st.dataframe(tbl_style(new_items.style), use_container_width=True, height=400)
+            st.dataframe(tbl_style(new_items.style), width="stretch", height=400)
         else:
             st.info("신규 품목이 없습니다.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -653,7 +653,7 @@ with tab5:
                     unsafe_allow_html=True)
         st.metric("중단 의심 품목 수", f"{len(disc_items)}개")
         if not disc_items.empty:
-            st.dataframe(tbl_style(disc_items.style), use_container_width=True, height=400)
+            st.dataframe(tbl_style(disc_items.style), width="stretch", height=400)
         else:
             st.info("중단 의심 품목이 없습니다.")
         st.markdown('</div>', unsafe_allow_html=True)
